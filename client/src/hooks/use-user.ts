@@ -1,14 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type InsertUser } from "@shared/routes";
+import { api } from "@shared/routes";
+import type { Profile, InsertProfile } from "@shared/schema";
 
 export function useUser() {
   return useQuery({
-    queryKey: [api.users.me.path],
-    queryFn: async () => {
-      const res = await fetch(api.users.me.path, { credentials: "include" });
+    queryKey: [api.profile.me.path],
+    queryFn: async (): Promise<Profile | null> => {
+      const res = await fetch(api.profile.me.path, { credentials: "include" });
       if (res.status === 401) return null;
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return api.users.me.responses[200].parse(await res.json());
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      return res.json();
     },
     retry: false,
   });
@@ -18,19 +19,19 @@ export function useUpdateUser() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: Partial<InsertUser>) => {
-      const res = await fetch(api.users.update.path, {
-        method: api.users.update.method,
+    mutationFn: async (data: Partial<InsertProfile>) => {
+      const res = await fetch(api.profile.update.path, {
+        method: api.profile.update.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         credentials: "include",
       });
       
       if (!res.ok) throw new Error("Failed to update profile");
-      return api.users.update.responses[200].parse(await res.json());
+      return res.json() as Promise<Profile>;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.users.me.path] });
+      queryClient.invalidateQueries({ queryKey: [api.profile.me.path] });
     },
   });
 }

@@ -1,19 +1,18 @@
 import { db } from "./db";
 import {
-  users, listings, rides, messages,
-  type User, type InsertUser,
+  profiles, listings, rides, messages,
+  type Profile, type InsertProfile,
   type Listing, type InsertListing,
   type Ride, type InsertRide,
   type Message, type InsertMessage
 } from "@shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, or } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  // Profiles
+  getProfile(userId: string): Promise<Profile | undefined>;
+  createProfile(profile: InsertProfile): Promise<Profile>;
+  updateProfile(userId: string, profile: Partial<InsertProfile>): Promise<Profile>;
 
   // Listings
   getListings(): Promise<Listing[]>;
@@ -23,34 +22,30 @@ export interface IStorage {
 
   // Rides
   getRides(): Promise<Ride[]>;
+  getRidesForUser(userId: string): Promise<Ride[]>;
   createRide(ride: InsertRide): Promise<Ride>;
   updateRide(id: number, ride: Partial<Ride>): Promise<Ride>;
 
   // Messages
-  getMessages(userId: number): Promise<Message[]>;
+  getMessages(userId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // Users
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+  // Profiles
+  async getProfile(userId: string): Promise<Profile | undefined> {
+    const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId));
+    return profile;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+  async createProfile(insertProfile: InsertProfile): Promise<Profile> {
+    const [profile] = await db.insert(profiles).values(insertProfile).returning();
+    return profile;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
-    return user;
-  }
-
-  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
-    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
-    return user;
+  async updateProfile(userId: string, updates: Partial<InsertProfile>): Promise<Profile> {
+    const [profile] = await db.update(profiles).set(updates).where(eq(profiles.userId, userId)).returning();
+    return profile;
   }
 
   // Listings
@@ -78,6 +73,12 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(rides).orderBy(desc(rides.createdAt));
   }
 
+  async getRidesForUser(userId: string): Promise<Ride[]> {
+    return await db.select().from(rides)
+      .where(or(eq(rides.riderId, userId), eq(rides.driverId, userId)))
+      .orderBy(desc(rides.createdAt));
+  }
+
   async createRide(insertRide: InsertRide): Promise<Ride> {
     const [ride] = await db.insert(rides).values(insertRide).returning();
     return ride;
@@ -89,13 +90,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Messages
-  async getMessages(userId: number): Promise<Message[]> {
+  async getMessages(userId: string): Promise<Message[]> {
     return await db.select().from(messages)
-      .where(
-        and(
-          eq(messages.receiverId, userId)
-        )
-      )
+      .where(or(eq(messages.receiverId, userId), eq(messages.senderId, userId)))
       .orderBy(desc(messages.createdAt));
   }
 

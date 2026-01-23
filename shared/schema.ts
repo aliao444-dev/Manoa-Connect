@@ -1,25 +1,17 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations, sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)]
-);
+// Re-export auth models (sessions and users tables for Replit Auth)
+export * from "./models/auth";
 
-export const users = pgTable("users", {
+// App-specific tables that extend user functionality
+export const profiles = pgTable("profiles", {
   id: serial("id").primaryKey(),
-  username: text("username").unique().notNull(),
+  userId: text("user_id").notNull().unique(), // Links to auth users.id
   displayName: text("display_name"),
-  email: text("email"),
   bio: text("bio"),
-  avatarUrl: text("avatar_url"),
   trustScore: integer("trust_score").default(100),
   isDriver: boolean("is_driver").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -27,32 +19,32 @@ export const users = pgTable("users", {
 
 export const listings = pgTable("listings", {
   id: serial("id").primaryKey(),
-  sellerId: integer("seller_id").notNull(),
+  sellerId: text("seller_id").notNull(), // Links to auth users.id
   title: text("title").notNull(),
   description: text("description").notNull(),
-  price: integer("price").notNull(), // In cents
+  price: integer("price").notNull(),
   condition: text("condition").notNull(),
-  category: text("category").notNull(), // Textbook, Dorm, Electronics, etc.
+  category: text("category").notNull(),
   imageUrls: text("image_urls").array().notNull(),
-  status: text("status").default("active"), // active, sold
+  status: text("status").default("active"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const rides = pgTable("rides", {
   id: serial("id").primaryKey(),
-  riderId: integer("rider_id").notNull(),
-  driverId: integer("driver_id"),
+  riderId: text("rider_id").notNull(), // Links to auth users.id
+  driverId: text("driver_id"),
   pickupLocation: text("pickup_location").notNull(),
   dropoffLocation: text("dropoff_location").notNull(),
-  status: text("status").default("requested"), // requested, accepted, completed, cancelled
-  price: integer("price").notNull(), // In cents
+  status: text("status").default("requested"),
+  price: integer("price").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
-  senderId: integer("sender_id").notNull(),
-  receiverId: integer("receiver_id").notNull(),
+  senderId: text("sender_id").notNull(),
+  receiverId: text("receiver_id").notNull(),
   content: text("content").notNull(),
   listingId: integer("listing_id"),
   rideId: integer("ride_id"),
@@ -61,63 +53,25 @@ export const messages = pgTable("messages", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const profilesRelations = relations(profiles, ({ many }) => ({
   listings: many(listings),
-  ridesAsRider: many(rides, { relationName: "rider" }),
-  ridesAsDriver: many(rides, { relationName: "driver" }),
-  sentMessages: many(messages, { relationName: "sender" }),
-  receivedMessages: many(messages, { relationName: "receiver" }),
 }));
 
 export const listingsRelations = relations(listings, ({ one }) => ({
-  seller: one(users, {
+  profile: one(profiles, {
     fields: [listings.sellerId],
-    references: [users.id],
-  }),
-}));
-
-export const ridesRelations = relations(rides, ({ one }) => ({
-  rider: one(users, {
-    fields: [rides.riderId],
-    references: [users.id],
-    relationName: "rider",
-  }),
-  driver: one(users, {
-    fields: [rides.driverId],
-    references: [users.id],
-    relationName: "driver",
-  }),
-}));
-
-export const messagesRelations = relations(messages, ({ one }) => ({
-  sender: one(users, {
-    fields: [messages.senderId],
-    references: [users.id],
-    relationName: "sender",
-  }),
-  receiver: one(users, {
-    fields: [messages.receiverId],
-    references: [users.id],
-    relationName: "receiver",
-  }),
-  listing: one(listings, {
-    fields: [messages.listingId],
-    references: [listings.id],
-  }),
-  ride: one(rides, {
-    fields: [messages.rideId],
-    references: [rides.id],
+    references: [profiles.userId],
   }),
 }));
 
 // Schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, trustScore: true, createdAt: true });
+export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, trustScore: true, createdAt: true });
 export const insertListingSchema = createInsertSchema(listings).omit({ id: true, createdAt: true, status: true });
 export const insertRideSchema = createInsertSchema(rides).omit({ id: true, createdAt: true, status: true, driverId: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true, read: true });
 
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Profile = typeof profiles.$inferSelect;
+export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type Listing = typeof listings.$inferSelect;
 export type InsertListing = z.infer<typeof insertListingSchema>;
 export type Ride = typeof rides.$inferSelect;

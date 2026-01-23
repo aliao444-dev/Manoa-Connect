@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertUserSchema, insertListingSchema, insertRideSchema, insertMessageSchema, users, listings, rides, messages } from './schema';
+import { insertProfileSchema, insertListingSchema, insertRideSchema, profiles, listings, rides, messages } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -9,27 +9,27 @@ export const errorSchemas = {
   notFound: z.object({
     message: z.string(),
   }),
-  internal: z.object({
+  unauthorized: z.object({
     message: z.string(),
   }),
 };
 
 export const api = {
-  users: {
+  profile: {
     me: {
       method: 'GET' as const,
-      path: '/api/user/me',
+      path: '/api/profile/me',
       responses: {
-        200: z.custom<typeof users.$inferSelect>(),
-        401: z.null(),
+        200: z.custom<typeof profiles.$inferSelect>(),
+        401: errorSchemas.unauthorized,
       },
     },
     update: {
       method: 'PATCH' as const,
-      path: '/api/user/me',
-      input: insertUserSchema.partial(),
+      path: '/api/profile/me',
+      input: insertProfileSchema.partial(),
       responses: {
-        200: z.custom<typeof users.$inferSelect>(),
+        200: z.custom<typeof profiles.$inferSelect>(),
       },
     },
   },
@@ -56,7 +56,7 @@ export const api = {
     create: {
       method: 'POST' as const,
       path: '/api/listings',
-      input: insertListingSchema,
+      input: insertListingSchema.omit({ sellerId: true }),
       responses: {
         201: z.custom<typeof listings.$inferSelect>(),
         400: errorSchemas.validation,
@@ -71,10 +71,17 @@ export const api = {
         200: z.array(z.custom<typeof rides.$inferSelect>()),
       },
     },
+    available: {
+      method: 'GET' as const,
+      path: '/api/rides/available',
+      responses: {
+        200: z.array(z.custom<typeof rides.$inferSelect>()),
+      },
+    },
     create: {
       method: 'POST' as const,
       path: '/api/rides',
-      input: insertRideSchema,
+      input: insertRideSchema.omit({ riderId: true }),
       responses: {
         201: z.custom<typeof rides.$inferSelect>(),
       },
@@ -82,9 +89,31 @@ export const api = {
     update: {
       method: 'PATCH' as const,
       path: '/api/rides/:id',
-      input: z.object({ status: z.string(), driverId: z.number().optional() }),
+      input: z.object({ status: z.string() }),
       responses: {
         200: z.custom<typeof rides.$inferSelect>(),
+      },
+    },
+  },
+  messages: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/messages',
+      responses: {
+        200: z.array(z.custom<typeof messages.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/messages',
+      input: z.object({
+        receiverId: z.string(),
+        content: z.string(),
+        listingId: z.number().optional(),
+        rideId: z.number().optional(),
+      }),
+      responses: {
+        201: z.custom<typeof messages.$inferSelect>(),
       },
     },
   },
