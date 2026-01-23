@@ -55,9 +55,20 @@ export async function registerRoutes(
   });
 
   // Listings - public access for viewing
-  app.get(api.listings.list.path, async (req, res) => {
+  app.get(api.listings.list.path, async (req: any, res) => {
     try {
       let listings = await storage.getListings();
+      
+      // Filter by "my" listings if requested
+      const myListings = req.query.my === 'true';
+      if (myListings) {
+        const userId = req.user?.claims?.sub;
+        if (userId) {
+          listings = listings.filter(l => l.sellerId === userId);
+        } else {
+          listings = [];
+        }
+      }
       
       // Filter by category if provided
       const category = req.query.category as string | undefined;

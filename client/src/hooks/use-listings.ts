@@ -36,6 +36,17 @@ export function useListing(id: number) {
   });
 }
 
+export function useMyListings() {
+  return useQuery({
+    queryKey: [api.listings.list.path, "my"],
+    queryFn: async () => {
+      const res = await fetch(`${api.listings.list.path}?my=true`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch my listings");
+      return api.listings.list.responses[200].parse(await res.json());
+    },
+  });
+}
+
 export function useCreateListing() {
   const queryClient = useQueryClient();
   
