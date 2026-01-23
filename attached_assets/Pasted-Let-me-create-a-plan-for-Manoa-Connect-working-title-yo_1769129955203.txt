@@ -1,0 +1,79 @@
+Let me create a plan for Manoa Connect (working title) - your all-in-one campus app:
+
+Plan
+Manoa Connect - UH Manoa Super App
+A WeChat-style all-in-one platform exclusively for University of Hawaii at Manoa students, combining marketplace, transportation, and campus services.
+
+🎨 Design & Branding
+UH Manoa branded with official green (#024731) and white color scheme
+Rainbow Warrior mascot-inspired accents
+Clean, mobile-first responsive design
+Bottom navigation for easy thumb access on mobile
+🔐 Authentication (Phase 1)
+Email verification restricted to @hawaii.edu addresses
+Student profile setup (name, major, graduation year, dorm/location)
+Profile photo upload
+Trust/reputation score visible to other students
+🛒 Marketplace Hub (Phase 2)
+Textbook Exchange
+
+List books by course number (e.g., "ECON 130")
+Condition ratings and photos
+Price comparison with bookstore prices
+Mark as "willing to trade"
+Dorm Essentials
+
+Pre-made dorm packages (mini fridges, microwaves, bedding bundles)
+Individual item listings
+"Move-out sales" category for end-of-semester deals
+General Marketplace
+
+Categories: Electronics, Furniture, Clothing, Event Tickets
+Location-based filtering (Frear Hall, Gateway House, etc.)
+Save/favorite listings
+Chat with sellers in-app
+Payment flexibility: In-app payments (Stripe) OR contact seller directly
+🛵 SWOOP Campus Transportation (Phase 3)
+Ride Booking
+
+Request golf cart or moped rides around campus
+Set pickup/dropoff locations via campus map
+Estimated wait times and pricing
+Schedule rides in advance for classes
+Driver Side (for student drivers)
+
+Accept/decline ride requests
+Earnings tracking
+Availability toggle
+Passive Income Model
+
+Students can sign up as SWOOP drivers
+Rating system for drivers and riders
+Surge pricing during busy periods (class changes, events)
+📅 Campus Organizer (Phase 4)
+Unified Calendar
+
+Import class schedule
+Auto-detect campus events
+Assignment due date tracking
+Study group scheduling
+Quick Tools
+
+One-tap flyer/poster creation (no Canva needed)
+Templates for club events, study groups, item sales
+Share directly to marketplace or social
+💬 Communication Layer (Phase 5)
+In-app messaging for marketplace transactions
+Ride coordination chat
+Notification center for all app activity
+Optional: Campus-wide announcement feed
+📊 Admin Dashboard (Future)
+Content moderation tools
+Transaction dispute resolution
+Usage analytics
+Featured listing promotion
+Technical Foundation
+Backend: Supabase for database, authentication, and real-time features
+Payments: Stripe integration for secure in-app transactions
+Storage: Cloud storage for photos and documents
+Real-time: Live updates for ride requests and messages
