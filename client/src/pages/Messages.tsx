@@ -18,11 +18,21 @@ const joinClassSchema = z.object({
 
 type JoinClassForm = z.infer<typeof joinClassSchema>;
 
+interface DirectChat {
+  id: number;
+  name: string;
+  lastMessage: string;
+  time: string;
+  messages: { id: number; content: string; fromMe: boolean; time: string }[];
+}
+
 export default function Messages() {
   const [activeTab, setActiveTab] = useState<"direct" | "classes">("classes");
   const [selectedGroup, setSelectedGroup] = useState<ClassGroup | null>(null);
+  const [selectedDirectChat, setSelectedDirectChat] = useState<DirectChat | null>(null);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [messageInput, setMessageInput] = useState("");
+  const [directMessageInput, setDirectMessageInput] = useState("");
   
   const { data: myGroups = [], isLoading: groupsLoading } = useMyClassGroups();
   const { data: groupMessages = [], isLoading: messagesLoading } = useGroupMessages(selectedGroup?.id || 0);
@@ -66,21 +76,69 @@ export default function Messages() {
     });
   };
 
-  const directChats = [
-    { id: 1, name: "Alice Smith", lastMessage: "Is the textbook still available?", time: "2m" },
-    { id: 2, name: "Bob Johnson", lastMessage: "I'll be there in 5 mins", time: "1h" },
-  ];
+  const handleSendDirectMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDirectChat || !directMessageInput.trim()) return;
+    
+    // Add message to local state (mock for now)
+    const newMessage = {
+      id: Date.now(),
+      content: directMessageInput,
+      fromMe: true,
+      time: "now"
+    };
+    setSelectedDirectChat({
+      ...selectedDirectChat,
+      messages: [...selectedDirectChat.messages, newMessage],
+      lastMessage: directMessageInput
+    });
+    setDirectMessageInput("");
+  };
+
+  const [directChats, setDirectChats] = useState<DirectChat[]>([
+    { 
+      id: 1, 
+      name: "Alice Smith", 
+      lastMessage: "Is the textbook still available?", 
+      time: "2m",
+      messages: [
+        { id: 1, content: "Hi! I saw your listing for the calculus textbook", fromMe: false, time: "5m ago" },
+        { id: 2, content: "Is the textbook still available?", fromMe: false, time: "2m ago" },
+      ]
+    },
+    { 
+      id: 2, 
+      name: "Bob Johnson", 
+      lastMessage: "I'll be there in 5 mins", 
+      time: "1h",
+      messages: [
+        { id: 1, content: "Hey, I'm the SWOOP driver", fromMe: false, time: "1h ago" },
+        { id: 2, content: "On my way to pick you up", fromMe: false, time: "1h ago" },
+        { id: 3, content: "I'll be there in 5 mins", fromMe: false, time: "1h ago" },
+      ]
+    },
+  ]);
+
+  const handleBackFromChat = () => {
+    if (activeTab === "classes") {
+      setSelectedGroup(null);
+    } else {
+      setSelectedDirectChat(null);
+    }
+  };
+
+  const hasActiveChat = activeTab === "classes" ? selectedGroup : selectedDirectChat;
 
   return (
     <div className="safe-p pt-8 pb-20 md:pl-72 md:pt-10 h-screen flex flex-col md:flex-row gap-6">
-      <div className={`w-full md:w-80 flex flex-col ${selectedGroup ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`w-full md:w-80 flex flex-col ${hasActiveChat ? 'hidden md:flex' : 'flex'}`}>
          <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
             <h1 className="font-display font-bold text-3xl text-primary">Messages</h1>
          </div>
 
          <div className="bg-muted p-1 rounded-xl flex gap-1 mb-4">
             <button 
-               onClick={() => setActiveTab("classes")}
+               onClick={() => { setActiveTab("classes"); setSelectedDirectChat(null); }}
                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                   activeTab === "classes" ? "bg-white dark:bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
                }`}
@@ -89,7 +147,7 @@ export default function Messages() {
                <Users className="w-4 h-4" /> Classes
             </button>
             <button 
-               onClick={() => setActiveTab("direct")}
+               onClick={() => { setActiveTab("direct"); setSelectedGroup(null); }}
                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                   activeTab === "direct" ? "bg-white dark:bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
                }`}
@@ -157,7 +215,11 @@ export default function Messages() {
                      {directChats.map((chat) => (
                         <div 
                            key={chat.id}
-                           className="p-4 border-b border-border/50 hover:bg-muted/30 cursor-pointer transition-colors"
+                           onClick={() => setSelectedDirectChat(chat)}
+                           className={`p-4 border-b border-border/50 hover:bg-muted/30 cursor-pointer transition-colors ${
+                              selectedDirectChat?.id === chat.id ? "bg-primary/5" : ""
+                           }`}
+                           data-testid={`chat-direct-${chat.id}`}
                         >
                            <div className="flex gap-3">
                               <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
@@ -179,11 +241,11 @@ export default function Messages() {
          </div>
       </div>
 
-      <div className={`flex-1 flex flex-col bg-white dark:bg-card rounded-3xl border border-border shadow-sm overflow-hidden ${!selectedGroup ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`flex-1 flex flex-col bg-white dark:bg-card rounded-3xl border border-border shadow-sm overflow-hidden ${!hasActiveChat ? 'hidden md:flex' : 'flex'}`}>
          {selectedGroup ? (
             <>
                <div className="p-4 border-b border-border flex items-center gap-3 bg-muted/10">
-                  <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedGroup(null)} data-testid="button-back-to-groups">
+                  <Button variant="ghost" size="icon" className="md:hidden" onClick={handleBackFromChat} data-testid="button-back-to-groups">
                      <ArrowLeft className="w-4 h-4" />
                   </Button>
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -238,16 +300,76 @@ export default function Messages() {
                   </div>
                </form>
             </>
+         ) : selectedDirectChat ? (
+            <>
+               <div className="p-4 border-b border-border flex items-center gap-3 bg-muted/10">
+                  <Button variant="ghost" size="icon" className="md:hidden" onClick={handleBackFromChat} data-testid="button-back-to-direct">
+                     <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                     <span className="font-bold text-secondary-foreground">{selectedDirectChat.name[0]}</span>
+                  </div>
+                  <div className="flex-1">
+                     <h3 className="font-bold text-sm">{selectedDirectChat.name}</h3>
+                     <span className="text-xs text-muted-foreground">Active now</span>
+                  </div>
+               </div>
+               
+               <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-dots">
+                  {selectedDirectChat.messages.map((msg) => (
+                     <div key={msg.id} className={`flex ${msg.fromMe ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+                           msg.fromMe 
+                              ? 'bg-primary text-primary-foreground rounded-tr-none' 
+                              : 'bg-muted rounded-tl-none'
+                        }`}>
+                           <p className="text-sm">{msg.content}</p>
+                           <p className={`text-xs mt-1 ${msg.fromMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{msg.time}</p>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+
+               <form onSubmit={handleSendDirectMessage} className="p-4 border-t border-border bg-white dark:bg-card">
+                  <div className="flex gap-2">
+                     <Input 
+                        placeholder="Type a message..." 
+                        className="flex-1 bg-muted/30 border-transparent rounded-xl"
+                        value={directMessageInput}
+                        onChange={(e) => setDirectMessageInput(e.target.value)}
+                        data-testid="input-direct-message"
+                     />
+                     <Button 
+                        type="submit" 
+                        size="icon" 
+                        className="rounded-xl shadow-lg shadow-primary/20"
+                        disabled={!directMessageInput.trim()}
+                        data-testid="button-send-direct-message"
+                     >
+                        <Send className="w-4 h-4" />
+                     </Button>
+                  </div>
+               </form>
+            </>
          ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
                <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-4">
                   <Users className="w-10 h-10 opacity-50" />
                </div>
-               <h3 className="font-display font-bold text-xl mb-2 text-foreground">Join a Class Group</h3>
-               <p className="mb-4">Connect with classmates by joining your class's group chat</p>
-               <Button onClick={() => setShowJoinDialog(true)} data-testid="button-join-class-empty">
-                  <Plus className="w-4 h-4 mr-2" /> Join a Class
-               </Button>
+               <h3 className="font-display font-bold text-xl mb-2 text-foreground">
+                  {activeTab === "classes" ? "Join a Class Group" : "Select a Conversation"}
+               </h3>
+               <p className="mb-4">
+                  {activeTab === "classes" 
+                     ? "Connect with classmates by joining your class's group chat"
+                     : "Choose a conversation from the list to start chatting"
+                  }
+               </p>
+               {activeTab === "classes" && (
+                  <Button onClick={() => setShowJoinDialog(true)} data-testid="button-join-class-empty">
+                     <Plus className="w-4 h-4 mr-2" /> Join a Class
+                  </Button>
+               )}
             </div>
          )}
       </div>
