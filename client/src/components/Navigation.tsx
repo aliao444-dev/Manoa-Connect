@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useUser } from "@/hooks/use-user";
-import { ShoppingBag, Car, MessageCircle, User, LogOut, Palette } from "lucide-react";
+import { ShoppingBag, Car, MessageCircle, User, LogOut, Palette, GraduationCap } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Navigation() {
@@ -13,6 +13,7 @@ export function Navigation() {
     { href: "/marketplace", icon: ShoppingBag, label: "Market" },
     { href: "/swoop", icon: Car, label: "SWOOP" },
     { href: "/wall-art", icon: Palette, label: "Wall Art" },
+    { href: "/scholarships", icon: GraduationCap, label: "Scholarships" },
     { href: "/messages", icon: MessageCircle, label: "Messages" },
     { href: "/profile", icon: User, label: "Profile" },
   ];
@@ -35,12 +36,12 @@ export function Navigation() {
 
         <div className="space-y-2 flex-1">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} data-testid={`link-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}>
               <div className={`
                 flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
                 ${isActive(item.href) 
                   ? "bg-white/10 text-white font-medium translate-x-1" 
-                  : "text-primary-foreground/70 hover:bg-white/5 hover:text-white"
+                  : "text-primary-foreground/70"
                 }
               `}>
                 <item.icon className="w-5 h-5" />
@@ -62,8 +63,9 @@ export function Navigation() {
           </div>
           <Button 
             variant="ghost" 
-            className="w-full justify-start text-primary-foreground/70 hover:text-white hover:bg-white/5"
+            className="w-full justify-start text-primary-foreground/70"
             onClick={() => window.location.href = "/api/logout"}
+            data-testid="button-nav-sign-out"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
@@ -75,7 +77,7 @@ export function Navigation() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 pb-safe">
         <div className="flex justify-around items-center p-3">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} data-testid={`link-mobile-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}>
               <div className={`
                 flex flex-col items-center gap-1 p-2 rounded-lg transition-colors
                 ${isActive(item.href) ? "text-primary" : "text-muted-foreground"}

@@ -14,6 +14,7 @@ import Swoop from "@/pages/Swoop";
 import Profile from "@/pages/Profile";
 import Messages from "@/pages/Messages";
 import WallArt from "@/pages/WallArt";
+import Scholarships from "@/pages/Scholarships";
 
 function Router() {
   const { data: user, isLoading } = useUser();
@@ -43,6 +44,7 @@ function Router() {
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/swoop" component={Swoop} />
           <Route path="/wall-art" component={WallArt} />
+          <Route path="/scholarships" component={Scholarships} />
           <Route path="/profile" component={Profile} />
           <Route path="/messages" component={Messages} />
           <Route component={NotFound} />
