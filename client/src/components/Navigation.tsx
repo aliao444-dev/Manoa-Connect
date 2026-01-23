@@ -24,15 +24,17 @@ export function Navigation() {
     <>
       {/* Desktop Sidebar */}
       <nav className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-64 bg-primary text-primary-foreground p-6 shadow-xl z-50">
-        <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-             {/* Logo placeholder */}
-             <span className="text-primary font-bold text-xl">M</span>
+        <Link href="/" data-testid="link-logo-home">
+          <div className="flex items-center gap-3 mb-12 cursor-pointer group">
+            <div className="w-12 h-12 bg-gradient-to-br from-white to-emerald-100 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+               <span className="text-primary font-black text-2xl">M</span>
+            </div>
+            <div>
+              <h1 className="font-display font-bold text-xl tracking-tight leading-tight">MANOA</h1>
+              <p className="text-xs text-primary-foreground/70 font-medium tracking-widest">CONNECT</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display font-bold text-2xl tracking-tight">Manoa<br/>Connect</h1>
-          </div>
-        </div>
+        </Link>
 
         <div className="space-y-2 flex-1">
           {navItems.map((item) => (

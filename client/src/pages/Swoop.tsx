@@ -130,61 +130,11 @@ export default function Swoop() {
 
        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden min-h-0">
           <div className="lg:col-span-2 bg-muted/30 rounded-3xl border border-border overflow-hidden relative">
-             <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3717.2489857508146!2d-157.8198405!3d21.2969444!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7c006d8d8d0f5c4f%3A0x8e0c5e5c8c0c8c0c!2sUniversity%20of%20Hawaii%20at%20Manoa!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
-                className="w-full h-full border-0"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="UH Manoa Campus Map"
+             <img
+                src="/assets/campus-map.png"
+                alt="UH Manoa Campus Map"
+                className="w-full h-full object-cover"
              />
-             
-             {/* Mock Driver Location Dots */}
-             <div className="absolute inset-0 pointer-events-none">
-                {/* Driver 1 - Hamilton Library area */}
-                <motion.div 
-                   className="absolute"
-                   style={{ top: '35%', left: '45%' }}
-                   animate={{ scale: [1, 1.2, 1] }}
-                   transition={{ repeat: Infinity, duration: 2 }}
-                >
-                   <div className="w-4 h-4 bg-primary rounded-full shadow-lg border-2 border-white" />
-                   <div className="w-4 h-4 bg-primary/30 rounded-full absolute top-0 animate-ping" />
-                </motion.div>
-                
-                {/* Driver 2 - Campus Center area */}
-                <motion.div 
-                   className="absolute"
-                   style={{ top: '50%', left: '55%' }}
-                   animate={{ scale: [1, 1.2, 1] }}
-                   transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
-                >
-                   <div className="w-4 h-4 bg-emerald-500 rounded-full shadow-lg border-2 border-white" />
-                   <div className="w-4 h-4 bg-emerald-500/30 rounded-full absolute top-0 animate-ping" />
-                </motion.div>
-                
-                {/* Driver 3 - Near Dorms */}
-                <motion.div 
-                   className="absolute"
-                   style={{ top: '60%', left: '30%' }}
-                   animate={{ scale: [1, 1.2, 1] }}
-                   transition={{ repeat: Infinity, duration: 2, delay: 1 }}
-                >
-                   <div className="w-4 h-4 bg-primary rounded-full shadow-lg border-2 border-white" />
-                   <div className="w-4 h-4 bg-primary/30 rounded-full absolute top-0 animate-ping" />
-                </motion.div>
-
-                {/* Driver 4 - Athletic Complex */}
-                <motion.div 
-                   className="absolute"
-                   style={{ top: '25%', left: '65%' }}
-                   animate={{ scale: [1, 1.2, 1] }}
-                   transition={{ repeat: Infinity, duration: 2, delay: 1.5 }}
-                >
-                   <div className="w-4 h-4 bg-emerald-500 rounded-full shadow-lg border-2 border-white" />
-                   <div className="w-4 h-4 bg-emerald-500/30 rounded-full absolute top-0 animate-ping" />
-                </motion.div>
-             </div>
              
              <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
                 <div className="bg-white/90 dark:bg-background/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-border/50 pointer-events-auto">
