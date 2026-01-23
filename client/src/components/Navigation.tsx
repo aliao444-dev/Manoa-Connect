@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useUser } from "@/hooks/use-user";
-import { Home, ShoppingBag, Car, MessageCircle, User, LogOut } from "lucide-react";
+import { ShoppingBag, Car, MessageCircle, User, LogOut, Palette } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Navigation() {
@@ -12,6 +12,7 @@ export function Navigation() {
   const navItems = [
     { href: "/marketplace", icon: ShoppingBag, label: "Market" },
     { href: "/swoop", icon: Car, label: "SWOOP" },
+    { href: "/wall-art", icon: Palette, label: "Wall Art" },
     { href: "/messages", icon: MessageCircle, label: "Messages" },
     { href: "/profile", icon: User, label: "Profile" },
   ];

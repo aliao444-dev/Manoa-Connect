@@ -155,6 +155,74 @@ export async function registerRoutes(
     }
   });
 
+  // Wall Spaces
+  app.get(api.walls.list.path, async (req, res) => {
+    try {
+      const walls = await storage.getWallSpaces();
+      res.json(walls);
+    } catch (error) {
+      console.error("Error fetching wall spaces:", error);
+      res.status(500).json({ message: "Failed to fetch wall spaces" });
+    }
+  });
+
+  app.get(api.walls.myBookings.path, isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const bookings = await storage.getWallBookingsForUser(userId);
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching wall bookings:", error);
+      res.status(500).json({ message: "Failed to fetch wall bookings" });
+    }
+  });
+
+  app.get(api.walls.get.path, async (req, res) => {
+    try {
+      const wall = await storage.getWallSpace(Number(req.params.id));
+      if (!wall) return res.status(404).json({ message: "Wall space not found" });
+      res.json(wall);
+    } catch (error) {
+      console.error("Error fetching wall space:", error);
+      res.status(500).json({ message: "Failed to fetch wall space" });
+    }
+  });
+
+  app.post("/api/walls/:id/book", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const wallId = Number(req.params.id);
+      const wall = await storage.getWallSpace(wallId);
+      if (!wall) return res.status(404).json({ message: "Wall space not found" });
+      if (wall.status !== "available") {
+        return res.status(400).json({ message: "Wall space is not available" });
+      }
+
+      const input = api.walls.book.input.parse(req.body);
+      const totalPrice = wall.pricePerMonth * input.duration;
+
+      const booking = await storage.createWallBooking({
+        ...input,
+        wallId,
+        userId,
+        totalPrice
+      });
+
+      // Update wall status to booked
+      await storage.updateWallStatus(wallId, "booked");
+
+      res.status(201).json(booking);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      console.error("Error booking wall space:", err);
+      res.status(500).json({ message: "Failed to book wall space" });
+    }
+  });
+
   // Seed database with demo data
   await seedDatabase();
 
@@ -197,6 +265,62 @@ async function seedDatabase() {
       });
 
       console.log("Seeded database with demo listings");
+    }
+
+    // Seed wall spaces
+    const existingWalls = await storage.getWallSpaces();
+    if (existingWalls.length === 0) {
+      await storage.createWallSpace({
+        name: "Shidler Courtyard - East Wall",
+        location: "Shidler College of Business, Ground Floor",
+        description: "High-visibility wall facing the main courtyard where students gather between classes. Perfect for brand awareness.",
+        dimensions: "15ft x 8ft",
+        pricePerMonth: 50000, // $500/month in cents
+        status: "available",
+        imageUrl: null,
+      });
+
+      await storage.createWallSpace({
+        name: "International Excellence Banner",
+        location: "Shidler College, Building B Entrance",
+        description: "Premium banner space at the main building entrance. Thousands of daily impressions from students and visitors.",
+        dimensions: "6ft x 20ft",
+        pricePerMonth: 75000,
+        status: "available",
+        imageUrl: null,
+      });
+
+      await storage.createWallSpace({
+        name: "Garden Walkway Mural",
+        location: "Shidler College, Garden Path",
+        description: "Scenic location along the palm-lined walkway. A creative canvas surrounded by tropical landscaping.",
+        dimensions: "20ft x 10ft",
+        pricePerMonth: 65000,
+        status: "available",
+        imageUrl: null,
+      });
+
+      await storage.createWallSpace({
+        name: "Study Hall Feature Wall",
+        location: "Shidler College, Building A Interior",
+        description: "Indoor feature wall in the main study area. Captive audience of focused students.",
+        dimensions: "12ft x 6ft",
+        pricePerMonth: 40000,
+        status: "available",
+        imageUrl: null,
+      });
+
+      await storage.createWallSpace({
+        name: "Evening Terrace Display",
+        location: "Shidler College, Terrace Area",
+        description: "Evening-lit display area near the outdoor seating. Popular spot for networking events.",
+        dimensions: "10ft x 8ft",
+        pricePerMonth: 55000,
+        status: "booked",
+        imageUrl: null,
+      });
+
+      console.log("Seeded database with wall spaces");
     }
   } catch (error) {
     console.error("Error seeding database:", error);

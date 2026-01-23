@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertProfileSchema, insertListingSchema, insertRideSchema, profiles, listings, rides, messages } from './schema';
+import { insertProfileSchema, insertListingSchema, insertRideSchema, insertWallBookingSchema, profiles, listings, rides, messages, wallSpaces, wallBookings } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -114,6 +114,39 @@ export const api = {
       }),
       responses: {
         201: z.custom<typeof messages.$inferSelect>(),
+      },
+    },
+  },
+  walls: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/walls',
+      responses: {
+        200: z.array(z.custom<typeof wallSpaces.$inferSelect>()),
+      },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/walls/:id',
+      responses: {
+        200: z.custom<typeof wallSpaces.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    book: {
+      method: 'POST' as const,
+      path: '/api/walls/:id/book',
+      input: insertWallBookingSchema.omit({ userId: true, wallId: true }),
+      responses: {
+        201: z.custom<typeof wallBookings.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+    myBookings: {
+      method: 'GET' as const,
+      path: '/api/walls/my-bookings',
+      responses: {
+        200: z.array(z.custom<typeof wallBookings.$inferSelect>()),
       },
     },
   },

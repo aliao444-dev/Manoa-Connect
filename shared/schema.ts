@@ -52,6 +52,32 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Wall Art / Startup Promotion
+export const wallSpaces = pgTable("wall_spaces", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  location: text("location").notNull(),
+  description: text("description").notNull(),
+  dimensions: text("dimensions").notNull(),
+  imageUrl: text("image_url"),
+  pricePerMonth: integer("price_per_month").notNull(),
+  status: text("status").default("available"), // available, booked, maintenance
+});
+
+export const wallBookings = pgTable("wall_bookings", {
+  id: serial("id").primaryKey(),
+  wallId: integer("wall_id").notNull(),
+  userId: text("user_id").notNull(),
+  startupName: text("startup_name").notNull(),
+  startupDescription: text("startup_description").notNull(),
+  designBrief: text("design_brief").notNull(),
+  contactEmail: text("contact_email").notNull(),
+  duration: integer("duration").notNull(), // months
+  totalPrice: integer("total_price").notNull(),
+  status: text("status").default("pending"), // pending, approved, in_progress, completed, cancelled
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const profilesRelations = relations(profiles, ({ many }) => ({
   listings: many(listings),
@@ -69,6 +95,7 @@ export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true,
 export const insertListingSchema = createInsertSchema(listings).omit({ id: true, createdAt: true, status: true });
 export const insertRideSchema = createInsertSchema(rides).omit({ id: true, createdAt: true, status: true, driverId: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true, read: true });
+export const insertWallBookingSchema = createInsertSchema(wallBookings).omit({ id: true, createdAt: true, status: true, totalPrice: true });
 
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
@@ -78,3 +105,6 @@ export type Ride = typeof rides.$inferSelect;
 export type InsertRide = z.infer<typeof insertRideSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type WallSpace = typeof wallSpaces.$inferSelect;
+export type WallBooking = typeof wallBookings.$inferSelect;
+export type InsertWallBooking = z.infer<typeof insertWallBookingSchema>;

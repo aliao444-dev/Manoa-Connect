@@ -1,10 +1,11 @@
 import { db } from "./db";
 import {
-  profiles, listings, rides, messages,
+  profiles, listings, rides, messages, wallSpaces, wallBookings,
   type Profile, type InsertProfile,
   type Listing, type InsertListing,
   type Ride, type InsertRide,
-  type Message, type InsertMessage
+  type Message, type InsertMessage,
+  type WallSpace, type WallBooking, type InsertWallBooking
 } from "@shared/schema";
 import { eq, desc, or } from "drizzle-orm";
 
@@ -29,6 +30,14 @@ export interface IStorage {
   // Messages
   getMessages(userId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+
+  // Wall Spaces
+  getWallSpaces(): Promise<WallSpace[]>;
+  getWallSpace(id: number): Promise<WallSpace | undefined>;
+  createWallSpace(wall: Omit<WallSpace, 'id'>): Promise<WallSpace>;
+  createWallBooking(booking: InsertWallBooking & { totalPrice: number }): Promise<WallBooking>;
+  getWallBookingsForUser(userId: string): Promise<WallBooking[]>;
+  updateWallStatus(id: number, status: string): Promise<WallSpace>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -99,6 +108,37 @@ export class DatabaseStorage implements IStorage {
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const [message] = await db.insert(messages).values(insertMessage).returning();
     return message;
+  }
+
+  // Wall Spaces
+  async getWallSpaces(): Promise<WallSpace[]> {
+    return await db.select().from(wallSpaces);
+  }
+
+  async getWallSpace(id: number): Promise<WallSpace | undefined> {
+    const [wall] = await db.select().from(wallSpaces).where(eq(wallSpaces.id, id));
+    return wall;
+  }
+
+  async createWallSpace(wall: Omit<WallSpace, 'id'>): Promise<WallSpace> {
+    const [newWall] = await db.insert(wallSpaces).values(wall).returning();
+    return newWall;
+  }
+
+  async createWallBooking(booking: InsertWallBooking & { totalPrice: number }): Promise<WallBooking> {
+    const [newBooking] = await db.insert(wallBookings).values(booking).returning();
+    return newBooking;
+  }
+
+  async getWallBookingsForUser(userId: string): Promise<WallBooking[]> {
+    return await db.select().from(wallBookings)
+      .where(eq(wallBookings.userId, userId))
+      .orderBy(desc(wallBookings.createdAt));
+  }
+
+  async updateWallStatus(id: number, status: string): Promise<WallSpace> {
+    const [wall] = await db.update(wallSpaces).set({ status }).where(eq(wallSpaces.id, id)).returning();
+    return wall;
   }
 }
 
