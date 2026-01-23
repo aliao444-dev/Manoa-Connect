@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl, type InsertListing } from "@shared/routes";
+import { api, buildUrl } from "@shared/routes";
+import type { InsertListing } from "@shared/schema";
 
 export function useListings(filters?: { category?: string; search?: string }) {
   const queryKey = [api.listings.list.path, filters];

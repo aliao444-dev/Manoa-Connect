@@ -46,7 +46,7 @@ export default function Marketplace() {
     createListing.mutate({
       ...data,
       price: Math.round(data.price * 100),
-      sellerId: 1, // Will be overridden by backend
+      sellerId: "temp", // Will be overridden by backend
       imageUrls: imageUrls.length > 0 ? imageUrls : ["https://placehold.co/600x400?text=No+Image"],
       status: "active",
     }, {
@@ -72,7 +72,7 @@ export default function Marketplace() {
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all">
+            <Button className="rounded-full shadow-lg shadow-primary/20" data-testid="button-sell-item">
               <Plus className="w-5 h-5 mr-2" />
               Sell Item
             </Button>
@@ -84,27 +84,28 @@ export default function Marketplace() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">Title</Label>
-                <Input id="title" placeholder="e.g. Calculus Textbook, Mini Fridge" {...form.register("title")} />
+                <Input id="title" placeholder="e.g. Calculus Textbook, Mini Fridge" {...form.register("title")} data-testid="input-listing-title" />
                 {form.formState.errors.title && <p className="text-destructive text-xs">{form.formState.errors.title.message}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                    <Label htmlFor="price">Price ($)</Label>
-                   <Input id="price" type="number" step="0.01" placeholder="0.00" {...form.register("price")} />
+                   <Input id="price" type="number" step="0.01" placeholder="0.00" {...form.register("price")} data-testid="input-listing-price" />
                 </div>
                 <div className="grid gap-2">
                    <Label htmlFor="category">Category</Label>
                    <Select onValueChange={(v) => form.setValue("category", v)}>
-                      <SelectTrigger>
+                      <SelectTrigger data-testid="select-category">
                         <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Textbooks">Textbooks</SelectItem>
+                        <SelectItem value="Textbook">Textbook</SelectItem>
                         <SelectItem value="Electronics">Electronics</SelectItem>
                         <SelectItem value="Dorm">Dorm Essentials</SelectItem>
-                        <SelectItem value="Clothing">Clothing</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
+                        <SelectItem value="Hawaiian">Hawaiian</SelectItem>
+                        <SelectItem value="Service">Service</SelectItem>
+                        <SelectItem value="Sports">Sports</SelectItem>
                       </SelectContent>
                    </Select>
                 </div>
@@ -138,7 +139,7 @@ export default function Marketplace() {
                     maxNumberOfFiles={3}
                     onGetUploadParameters={getUploadParameters}
                     onComplete={(result) => {
-                      const urls = result.successful.map(f => f.response?.uploadURL as string).filter(Boolean);
+                      const urls = (result.successful || []).map(f => f.response?.uploadURL as string).filter(Boolean);
                       setImageUrls(prev => [...prev, ...urls]);
                       toast({ title: "Uploaded", description: `${urls.length} images uploaded` });
                     }}
@@ -172,19 +173,21 @@ export default function Marketplace() {
              className="pl-9 bg-muted/30 border-transparent focus:bg-white transition-all"
              value={search}
              onChange={(e) => setSearch(e.target.value)}
+             data-testid="input-search-listings"
           />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
-           {["All", "Textbooks", "Dorm", "Electronics", "Clothing"].map((cat) => (
+           {["All", "Textbook", "Dorm", "Electronics", "Hawaiian", "Service", "Sports"].map((cat) => (
               <button
                 key={cat}
-                onClick={() => setCategory(cat.toLowerCase())}
+                onClick={() => setCategory(cat === "All" ? "" : cat)}
                 className={`
                    px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors
-                   ${(category === cat.toLowerCase() || (cat === "All" && !category)) 
+                   ${(category === cat || (cat === "All" && !category)) 
                       ? "bg-primary text-white" 
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"}
+                      : "bg-muted text-muted-foreground"}
                 `}
+                data-testid={`button-filter-${cat.toLowerCase()}`}
               >
                  {cat}
               </button>

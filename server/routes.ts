@@ -57,7 +57,26 @@ export async function registerRoutes(
   // Listings - public access for viewing
   app.get(api.listings.list.path, async (req, res) => {
     try {
-      const listings = await storage.getListings();
+      let listings = await storage.getListings();
+      
+      // Filter by category if provided
+      const category = req.query.category as string | undefined;
+      if (category && category !== 'all') {
+        listings = listings.filter(l => 
+          l.category.toLowerCase() === category.toLowerCase()
+        );
+      }
+      
+      // Filter by search if provided
+      const search = req.query.search as string | undefined;
+      if (search) {
+        const searchLower = search.toLowerCase();
+        listings = listings.filter(l => 
+          l.title.toLowerCase().includes(searchLower) ||
+          l.description.toLowerCase().includes(searchLower)
+        );
+      }
+      
       res.json(listings);
     } catch (error) {
       console.error("Error fetching listings:", error);

@@ -139,14 +139,69 @@ export default function Swoop() {
                 title="UH Manoa Campus Map"
              />
              
+             {/* Mock Driver Location Dots */}
+             <div className="absolute inset-0 pointer-events-none">
+                {/* Driver 1 - Hamilton Library area */}
+                <motion.div 
+                   className="absolute"
+                   style={{ top: '35%', left: '45%' }}
+                   animate={{ scale: [1, 1.2, 1] }}
+                   transition={{ repeat: Infinity, duration: 2 }}
+                >
+                   <div className="w-4 h-4 bg-primary rounded-full shadow-lg border-2 border-white" />
+                   <div className="w-4 h-4 bg-primary/30 rounded-full absolute top-0 animate-ping" />
+                </motion.div>
+                
+                {/* Driver 2 - Campus Center area */}
+                <motion.div 
+                   className="absolute"
+                   style={{ top: '50%', left: '55%' }}
+                   animate={{ scale: [1, 1.2, 1] }}
+                   transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
+                >
+                   <div className="w-4 h-4 bg-emerald-500 rounded-full shadow-lg border-2 border-white" />
+                   <div className="w-4 h-4 bg-emerald-500/30 rounded-full absolute top-0 animate-ping" />
+                </motion.div>
+                
+                {/* Driver 3 - Near Dorms */}
+                <motion.div 
+                   className="absolute"
+                   style={{ top: '60%', left: '30%' }}
+                   animate={{ scale: [1, 1.2, 1] }}
+                   transition={{ repeat: Infinity, duration: 2, delay: 1 }}
+                >
+                   <div className="w-4 h-4 bg-primary rounded-full shadow-lg border-2 border-white" />
+                   <div className="w-4 h-4 bg-primary/30 rounded-full absolute top-0 animate-ping" />
+                </motion.div>
+
+                {/* Driver 4 - Athletic Complex */}
+                <motion.div 
+                   className="absolute"
+                   style={{ top: '25%', left: '65%' }}
+                   animate={{ scale: [1, 1.2, 1] }}
+                   transition={{ repeat: Infinity, duration: 2, delay: 1.5 }}
+                >
+                   <div className="w-4 h-4 bg-emerald-500 rounded-full shadow-lg border-2 border-white" />
+                   <div className="w-4 h-4 bg-emerald-500/30 rounded-full absolute top-0 animate-ping" />
+                </motion.div>
+             </div>
+             
              <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
                 <div className="bg-white/90 dark:bg-background/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-border/50 pointer-events-auto">
                    <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Estimated Wait</p>
                    <p className="text-2xl font-display font-bold text-primary">4 min</p>
                 </div>
-                <div className="bg-white/90 dark:bg-background/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-border/50 pointer-events-auto">
+                <div className="bg-white/90 dark:bg-background/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-border/50 pointer-events-auto flex flex-col items-center gap-1">
                    <p className="text-xs text-muted-foreground">Available Drivers</p>
-                   <p className="text-lg font-bold text-center">12</p>
+                   <div className="flex items-center gap-2">
+                      <div className="flex -space-x-1">
+                         <div className="w-2 h-2 bg-primary rounded-full" />
+                         <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                         <div className="w-2 h-2 bg-primary rounded-full" />
+                         <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                      </div>
+                      <p className="text-lg font-bold">4</p>
+                   </div>
                 </div>
              </div>
           </div>
