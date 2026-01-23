@@ -1,13 +1,18 @@
 import { db } from "./db";
 import {
   profiles, listings, rides, messages, wallSpaces, wallBookings,
+  vehicles, classGroups, classGroupMembers, groupMessages, scholarships,
   type Profile, type InsertProfile,
   type Listing, type InsertListing,
   type Ride, type InsertRide,
   type Message, type InsertMessage,
-  type WallSpace, type WallBooking, type InsertWallBooking
+  type WallSpace, type WallBooking, type InsertWallBooking,
+  type Vehicle, type InsertVehicle,
+  type ClassGroup, type InsertClassGroup, type ClassGroupMember,
+  type GroupMessage, type InsertGroupMessage,
+  type Scholarship, type InsertScholarship
 } from "@shared/schema";
-import { eq, desc, or } from "drizzle-orm";
+import { eq, desc, or, and, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Profiles
@@ -38,6 +43,29 @@ export interface IStorage {
   createWallBooking(booking: InsertWallBooking & { totalPrice: number }): Promise<WallBooking>;
   getWallBookingsForUser(userId: string): Promise<WallBooking[]>;
   updateWallStatus(id: number, status: string): Promise<WallSpace>;
+
+  // Vehicles
+  getVehicles(): Promise<Vehicle[]>;
+  getVehiclesForUser(userId: string): Promise<Vehicle[]>;
+  getAvailableVehicles(): Promise<Vehicle[]>;
+  createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
+  updateVehicleAvailability(id: number, ownerId: string, available: boolean): Promise<Vehicle>;
+
+  // Class Groups
+  getClassGroups(): Promise<ClassGroup[]>;
+  getClassGroup(classId: string): Promise<ClassGroup | undefined>;
+  getClassGroupById(id: number): Promise<ClassGroup | undefined>;
+  createClassGroup(group: InsertClassGroup): Promise<ClassGroup>;
+  joinClassGroup(groupId: number, userId: string): Promise<ClassGroupMember>;
+  getUserClassGroups(userId: string): Promise<ClassGroup[]>;
+  getClassGroupMembership(groupId: number, userId: string): Promise<ClassGroupMember | undefined>;
+  getGroupMessages(groupId: number): Promise<GroupMessage[]>;
+  createGroupMessage(message: InsertGroupMessage): Promise<GroupMessage>;
+
+  // Scholarships
+  getScholarships(): Promise<Scholarship[]>;
+  getScholarship(id: number): Promise<Scholarship | undefined>;
+  createScholarship(scholarship: InsertScholarship): Promise<Scholarship>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -139,6 +167,96 @@ export class DatabaseStorage implements IStorage {
   async updateWallStatus(id: number, status: string): Promise<WallSpace> {
     const [wall] = await db.update(wallSpaces).set({ status }).where(eq(wallSpaces.id, id)).returning();
     return wall;
+  }
+
+  // Vehicles
+  async getVehicles(): Promise<Vehicle[]> {
+    return await db.select().from(vehicles).orderBy(desc(vehicles.createdAt));
+  }
+
+  async getVehiclesForUser(userId: string): Promise<Vehicle[]> {
+    return await db.select().from(vehicles).where(eq(vehicles.ownerId, userId));
+  }
+
+  async getAvailableVehicles(): Promise<Vehicle[]> {
+    return await db.select().from(vehicles).where(eq(vehicles.available, true));
+  }
+
+  async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
+    const [vehicle] = await db.insert(vehicles).values(insertVehicle).returning();
+    return vehicle;
+  }
+
+  async updateVehicleAvailability(id: number, ownerId: string, available: boolean): Promise<Vehicle> {
+    const [vehicle] = await db.update(vehicles)
+      .set({ available })
+      .where(and(eq(vehicles.id, id), eq(vehicles.ownerId, ownerId)))
+      .returning();
+    return vehicle;
+  }
+
+  // Class Groups
+  async getClassGroups(): Promise<ClassGroup[]> {
+    return await db.select().from(classGroups);
+  }
+
+  async getClassGroup(classId: string): Promise<ClassGroup | undefined> {
+    const [group] = await db.select().from(classGroups).where(eq(classGroups.classId, classId));
+    return group;
+  }
+
+  async getClassGroupById(id: number): Promise<ClassGroup | undefined> {
+    const [group] = await db.select().from(classGroups).where(eq(classGroups.id, id));
+    return group;
+  }
+
+  async createClassGroup(insertGroup: InsertClassGroup): Promise<ClassGroup> {
+    const [group] = await db.insert(classGroups).values(insertGroup).returning();
+    return group;
+  }
+
+  async joinClassGroup(groupId: number, userId: string): Promise<ClassGroupMember> {
+    const [member] = await db.insert(classGroupMembers).values({ groupId, userId }).returning();
+    return member;
+  }
+
+  async getUserClassGroups(userId: string): Promise<ClassGroup[]> {
+    const memberships = await db.select().from(classGroupMembers).where(eq(classGroupMembers.userId, userId));
+    if (memberships.length === 0) return [];
+    const groupIds = memberships.map(m => m.groupId);
+    return await db.select().from(classGroups).where(inArray(classGroups.id, groupIds));
+  }
+
+  async getClassGroupMembership(groupId: number, userId: string): Promise<ClassGroupMember | undefined> {
+    const [member] = await db.select().from(classGroupMembers)
+      .where(and(eq(classGroupMembers.groupId, groupId), eq(classGroupMembers.userId, userId)));
+    return member;
+  }
+
+  async getGroupMessages(groupId: number): Promise<GroupMessage[]> {
+    return await db.select().from(groupMessages)
+      .where(eq(groupMessages.groupId, groupId))
+      .orderBy(desc(groupMessages.createdAt));
+  }
+
+  async createGroupMessage(insertMessage: InsertGroupMessage): Promise<GroupMessage> {
+    const [message] = await db.insert(groupMessages).values(insertMessage).returning();
+    return message;
+  }
+
+  // Scholarships
+  async getScholarships(): Promise<Scholarship[]> {
+    return await db.select().from(scholarships);
+  }
+
+  async getScholarship(id: number): Promise<Scholarship | undefined> {
+    const [scholarship] = await db.select().from(scholarships).where(eq(scholarships.id, id));
+    return scholarship;
+  }
+
+  async createScholarship(insertScholarship: InsertScholarship): Promise<Scholarship> {
+    const [scholarship] = await db.insert(scholarships).values(insertScholarship).returning();
+    return scholarship;
   }
 }
 

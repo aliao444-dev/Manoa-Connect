@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { insertProfileSchema, insertListingSchema, insertRideSchema, insertWallBookingSchema, profiles, listings, rides, messages, wallSpaces, wallBookings } from './schema';
+import { 
+  insertProfileSchema, insertListingSchema, insertRideSchema, insertWallBookingSchema, 
+  insertVehicleSchema, insertClassGroupSchema, insertGroupMessageSchema,
+  profiles, listings, rides, messages, wallSpaces, wallBookings, vehicles, 
+  classGroups, classGroupMembers, groupMessages, scholarships 
+} from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -147,6 +152,99 @@ export const api = {
       path: '/api/walls/my-bookings',
       responses: {
         200: z.array(z.custom<typeof wallBookings.$inferSelect>()),
+      },
+    },
+  },
+  vehicles: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/vehicles',
+      responses: {
+        200: z.array(z.custom<typeof vehicles.$inferSelect>()),
+      },
+    },
+    myVehicles: {
+      method: 'GET' as const,
+      path: '/api/vehicles/mine',
+      responses: {
+        200: z.array(z.custom<typeof vehicles.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/vehicles',
+      input: insertVehicleSchema.omit({ ownerId: true }),
+      responses: {
+        201: z.custom<typeof vehicles.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/vehicles/:id',
+      input: z.object({ available: z.boolean() }),
+      responses: {
+        200: z.custom<typeof vehicles.$inferSelect>(),
+      },
+    },
+  },
+  scholarships: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/scholarships',
+      responses: {
+        200: z.array(z.custom<typeof scholarships.$inferSelect>()),
+      },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/scholarships/:id',
+      responses: {
+        200: z.custom<typeof scholarships.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
+  },
+  classGroups: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/class-groups',
+      responses: {
+        200: z.array(z.custom<typeof classGroups.$inferSelect>()),
+      },
+    },
+    join: {
+      method: 'POST' as const,
+      path: '/api/class-groups/join',
+      input: z.object({ classId: z.string().min(1, "Class ID is required") }),
+      responses: {
+        200: z.object({ 
+          group: z.custom<typeof classGroups.$inferSelect>(),
+          membership: z.custom<typeof classGroupMembers.$inferSelect>(),
+        }),
+        404: errorSchemas.notFound,
+      },
+    },
+    myGroups: {
+      method: 'GET' as const,
+      path: '/api/class-groups/mine',
+      responses: {
+        200: z.array(z.custom<typeof classGroups.$inferSelect>()),
+      },
+    },
+    messages: {
+      method: 'GET' as const,
+      path: '/api/class-groups/:id/messages',
+      responses: {
+        200: z.array(z.custom<typeof groupMessages.$inferSelect>()),
+      },
+    },
+    sendMessage: {
+      method: 'POST' as const,
+      path: '/api/class-groups/:id/messages',
+      input: insertGroupMessageSchema.omit({ groupId: true, senderId: true }),
+      responses: {
+        201: z.custom<typeof groupMessages.$inferSelect>(),
       },
     },
   },
