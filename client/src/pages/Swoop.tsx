@@ -133,8 +133,55 @@ export default function Swoop() {
              <img
                 src="/assets/campus-map.png"
                 alt="UH Manoa Campus Map"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-left"
              />
+             
+             {/* Driver location markers */}
+             <div className="absolute inset-0 pointer-events-none">
+                {/* Driver 1 - Hamilton Library area */}
+                <motion.div 
+                   className="absolute flex flex-col items-center"
+                   style={{ top: '30%', left: '40%' }}
+                   animate={{ y: [0, -3, 0] }}
+                   transition={{ repeat: Infinity, duration: 2 }}
+                >
+                   <span className="text-2xl">🛵</span>
+                   <div className="w-3 h-3 bg-primary rounded-full shadow-lg border-2 border-white -mt-1" />
+                </motion.div>
+                
+                {/* Driver 2 - Campus Center area */}
+                <motion.div 
+                   className="absolute flex flex-col items-center"
+                   style={{ top: '45%', left: '55%' }}
+                   animate={{ y: [0, -3, 0] }}
+                   transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
+                >
+                   <span className="text-2xl">🛵</span>
+                   <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg border-2 border-white -mt-1" />
+                </motion.div>
+                
+                {/* Driver 3 - Near Dorms */}
+                <motion.div 
+                   className="absolute flex flex-col items-center"
+                   style={{ top: '60%', left: '25%' }}
+                   animate={{ y: [0, -3, 0] }}
+                   transition={{ repeat: Infinity, duration: 2, delay: 1 }}
+                >
+                   <span className="text-2xl">🛵</span>
+                   <div className="w-3 h-3 bg-primary rounded-full shadow-lg border-2 border-white -mt-1" />
+                </motion.div>
+
+                {/* Driver 4 - Athletic Complex */}
+                <motion.div 
+                   className="absolute flex flex-col items-center"
+                   style={{ top: '35%', left: '70%' }}
+                   animate={{ y: [0, -3, 0] }}
+                   transition={{ repeat: Infinity, duration: 2, delay: 1.5 }}
+                >
+                   <span className="text-2xl">🛵</span>
+                   <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg border-2 border-white -mt-1" />
+                </motion.div>
+             </div>
              
              <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
                 <div className="bg-white/90 dark:bg-background/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-border/50 pointer-events-auto">
