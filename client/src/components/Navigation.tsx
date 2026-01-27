@@ -41,13 +41,15 @@ export function Navigation() {
           {navItems.map((item) => (
             <Link key={item.href} href={item.href} data-testid={`link-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}>
               <div className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
+                flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer 
+                transition-all duration-300 ease-out
+                hover:bg-white/15 hover:translate-x-2 hover:shadow-lg hover:shadow-white/5
                 ${isActive(item.href) 
-                  ? "bg-white/10 text-white font-medium translate-x-1" 
-                  : "text-primary-foreground/70"
+                  ? "bg-white/20 text-white font-medium translate-x-1 shadow-md shadow-white/10" 
+                  : "text-primary-foreground/70 hover:text-white"
                 }
               `}>
-                <item.icon className="w-5 h-5" />
+                <item.icon className={`w-5 h-5 transition-transform duration-300 ${isActive(item.href) ? "" : "group-hover:scale-110"}`} />
                 <span>{item.label}</span>
               </div>
             </Link>
