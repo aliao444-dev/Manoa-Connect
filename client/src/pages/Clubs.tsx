@@ -2055,7 +2055,7 @@ export default function Clubs() {
                         </Badge>
                       </div>
                       <p className={`text-sm text-muted-foreground ${expandedClub === club.id ? "" : "line-clamp-2"}`}>
-                        {club.purpose}
+                        {club.purpose}{club.purpose.length >= 290 && !club.purpose.endsWith('.') ? "..." : ""}
                       </p>
                     </div>
                     <Button variant="ghost" size="icon" className="flex-shrink-0" data-testid={`button-expand-${club.id}`}>
@@ -2109,6 +2109,7 @@ export default function Clubs() {
 
         <div className="mt-8 p-4 bg-muted/30 rounded-2xl text-center text-sm text-muted-foreground">
           <p>Data sourced from UH Manoa Registered Independent Organizations (RIOs)</p>
+          <p className="text-xs mt-1">Some descriptions may be abbreviated. Contact clubs directly for full details.</p>
           <p className="text-xs mt-1">Last updated: December 2025</p>
         </div>
       </div>
