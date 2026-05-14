@@ -1,4 +1,4 @@
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as GitHubStrategy } from "passport-github2";
 import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
@@ -36,19 +36,21 @@ export async function setupAuth(app: Express) {
   const appUrl = process.env.APP_URL || "http://localhost:5000";
 
   passport.use(
-    new GoogleStrategy(
+    new GitHubStrategy(
       {
-        clientID: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: `${appUrl}/api/auth/google/callback`,
+        clientID: process.env.GITHUB_CLIENT_ID!,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+        callbackURL: `${appUrl}/api/auth/github/callback`,
       },
-      async (_accessToken, _refreshToken, profile, done) => {
+      async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
         try {
+          const email = profile.emails?.[0]?.value ?? null;
+          const nameParts = (profile.displayName || profile.username || "").split(" ");
           const user = await authStorage.upsertUser({
-            id: profile.id,
-            email: profile.emails?.[0]?.value ?? null,
-            firstName: profile.name?.givenName ?? null,
-            lastName: profile.name?.familyName ?? null,
+            id: `github_${profile.id}`,
+            email,
+            firstName: nameParts[0] ?? profile.username ?? null,
+            lastName: nameParts.slice(1).join(" ") || null,
             profileImageUrl: profile.photos?.[0]?.value ?? null,
           });
           done(null, {
@@ -56,7 +58,7 @@ export async function setupAuth(app: Express) {
             expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
           });
         } catch (err) {
-          done(err as Error);
+          done(err);
         }
       }
     )
@@ -78,17 +80,17 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/login", (req, res) => {
     if (req.isAuthenticated()) return res.redirect("/");
-    res.redirect("/api/auth/google");
+    res.redirect("/api/auth/github");
   });
 
   app.get(
-    "/api/auth/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
+    "/api/auth/github",
+    passport.authenticate("github", { scope: ["user:email"] })
   );
 
   app.get(
-    "/api/auth/google/callback",
-    passport.authenticate("google", {
+    "/api/auth/github/callback",
+    passport.authenticate("github", {
       successRedirect: "/",
       failureRedirect: "/?auth=error",
     })
