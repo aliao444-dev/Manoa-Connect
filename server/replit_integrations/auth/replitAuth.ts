@@ -1,27 +1,9 @@
-import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import { authStorage } from "./storage";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
-
-const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
-}
-
-async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const [hashed, salt] = stored.split(".");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return timingSafeEqual(Buffer.from(hashed, "hex"), buf);
-}
-
-export { hashPassword, verifyPassword };
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000;
@@ -51,25 +33,33 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  const appUrl = process.env.APP_URL || "http://localhost:5000";
+
   passport.use(
-    new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
-      try {
-        const user = await authStorage.getUserByEmail(email);
-        if (!user || !user.passwordHash) {
-          return done(null, false, { message: "Invalid email or password" });
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        callbackURL: `${appUrl}/api/auth/google/callback`,
+      },
+      async (_accessToken, _refreshToken, profile, done) => {
+        try {
+          const user = await authStorage.upsertUser({
+            id: profile.id,
+            email: profile.emails?.[0]?.value ?? null,
+            firstName: profile.name?.givenName ?? null,
+            lastName: profile.name?.familyName ?? null,
+            profileImageUrl: profile.photos?.[0]?.value ?? null,
+          });
+          done(null, {
+            claims: { sub: user.id, email: user.email, first_name: user.firstName },
+            expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
+          });
+        } catch (err) {
+          done(err as Error);
         }
-        const valid = await verifyPassword(password, user.passwordHash);
-        if (!valid) {
-          return done(null, false, { message: "Invalid email or password" });
-        }
-        done(null, {
-          claims: { sub: user.id, email: user.email, first_name: user.firstName },
-          expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
-        });
-      } catch (err) {
-        done(err);
       }
-    })
+    )
   );
 
   passport.serializeUser((user: any, cb) => cb(null, user.claims.sub));
@@ -88,8 +78,21 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/login", (req, res) => {
     if (req.isAuthenticated()) return res.redirect("/");
-    res.redirect("/?auth=login");
+    res.redirect("/api/auth/google");
   });
+
+  app.get(
+    "/api/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
+
+  app.get(
+    "/api/auth/google/callback",
+    passport.authenticate("google", {
+      successRedirect: "/",
+      failureRedirect: "/?auth=error",
+    })
+  );
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => res.redirect("/"));
