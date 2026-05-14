@@ -134,14 +134,6 @@ export default function Landing() {
               Join Now — It's Free
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => { setError(""); setShowModal(true); }}
-              className="w-full sm:w-auto px-8 h-14 text-lg rounded-full border-primary/30 hover:border-primary/60"
-            >
-              Sign In
-            </Button>
           </motion.div>
 
           <motion.div
